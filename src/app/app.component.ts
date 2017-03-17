@@ -70,4 +70,15 @@ export class MyApp {
   refreshFavorites() {
     this.userSettings.getAllFavorites().then(favs => this.favoriteTeams = favs);
   }
+  menuClosed() {
+    //code to execute when menu has closed
+    console.log("MenuClosed");
+    this.events.publish('MenuIonClosed');
+  }
+
+  menuOpened() {
+     //code to execute when menu has opened
+     console.log(" MenuOpened");
+     this.events.publish('MenuIonOpened');
+  }
 }

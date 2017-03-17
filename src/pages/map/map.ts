@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NavController, NavParams } from 'ionic-angular';
+import { NavController, NavParams, Events } from 'ionic-angular';
 import {
  GoogleMap,
  GoogleMapsEvent,
@@ -13,50 +13,102 @@ import {
   templateUrl: 'map.html'
 })
 export class MapPage {
+  
+  public markers : GoogleMapsMarker[];
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {}
+  constructor(
+    public navCtrl: NavController,
+    public navParams: NavParams,
+    private events:Events ) 
+  { }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad MapPage');
   }
-  loadMap() {
-    // make sure to create following structure in your view.html file
-    // and add a height (for example 100%) to it, else the map won't be visible
-    // <ion-content>
-    //  <div #map id="map" style="height:100%;"></div>
-    // </ion-content>
 
+  // Load map only after view is initialize
+  ngAfterViewInit() {
+    this.loadMap();
+    console.log('ngAfterViewInit MapPage');     
+  }
+
+  loadMap() {    
     // create a new map by passing HTMLElement
     let element: HTMLElement = document.getElementById('map');
 
     let map = new GoogleMap(element);
 
+    let japan: GoogleMapsLatLng = new GoogleMapsLatLng( 35.710837, 139.724121 );
+
+    let markerExist:boolean = false;
+
+    let mMarker: GoogleMapsMarker;
+
     // create LatLng object
-    let ionic: GoogleMapsLatLng = new GoogleMapsLatLng(43.0741904,-89.3809802);
+    map.getMyLocation().then(location => {       
+      console.log("location.latLng.lat  location.latLng.lng");        
+    }); 
 
     // create CameraPosition
-    let position: CameraPosition = {
-      target: ionic,
+    let positionJpn: CameraPosition = {
+      target: japan,
       zoom: 18,
       tilt: 30
     };
 
-    // listen to MAP_READY event
+    //------------------------- Map events   ----------------------------------------
     map.one(GoogleMapsEvent.MAP_READY).then(() => {
+      // Listen to menu events
+      this.events.subscribe('MenuIonClosed', () => {       
+        map.setClickable(true);
+      });  
+        
+      this.events.subscribe('MenuIonOpened', () => {       
+        console.log("Menus Also emmit Events");
+         map.setClickable(false);
+      });  
+      
       // move the map's camera to position
-      map.moveCamera(position); // works on iOS and Android
-    });
+      map.moveCamera(positionJpn); // works on iOS and Android
+      //map.setCenter(true);
+      map.setMyLocationEnabled(true);
 
+      map.setClickable(true);
+    });      
 
-    // create new marker
-    let markerOptions: GoogleMapsMarkerOptions = {
-      position: ionic,
-      title: 'Ionic'
-    };
-
-    map.addMarker(markerOptions)
-      .then((marker: GoogleMapsMarker) => {
-          marker.showInfoWindow();
+    map.on(GoogleMapsEvent.MAP_LONG_CLICK).subscribe( latLngs => {
+      
+      // Add markers
+      let markerData: GoogleMapsMarkerOptions = {
+        position: new GoogleMapsLatLng(latLngs.lat, latLngs.lng),
+        title: "Interpol"   
+      };        
+      
+      // Put a marker and remove others when map is long clicked.   
+      if(!markerExist){
+        map.addMarker( markerData ).then((marker: GoogleMapsMarker) => {             
+          mMarker = marker;
+          // marker.remove();
+          // this.markers.push(marker);
+          mMarker.addEventListener(GoogleMapsEvent.MARKER_CLICK).subscribe( () => {
+            mMarker.showInfoWindow(); 
+          });
         });
-  }
+        markerExist = true;
+      } else {
+          mMarker.remove();
+          map.addMarker( markerData ).then((marker: GoogleMapsMarker) => {             
+          mMarker = marker;
+          // marker.remove();
+          // this.markers.push(marker);
+          mMarker.addEventListener(GoogleMapsEvent.MARKER_CLICK).subscribe( () => {
+            mMarker.showInfoWindow();
+          });
+        });
+      }                            
+    });   
+    
+    //-|--|--|--|--|--|--|--|--|--|--|--|--|--|--|--|--|--|--|--|--|--|--|-|--|-|--|  
+
+  }  
 }

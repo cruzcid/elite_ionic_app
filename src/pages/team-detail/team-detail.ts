@@ -24,11 +24,12 @@ export class TeamDetailPage {
       private toastController: ToastController,
       private eliteApi: EliteApi,
       private alertController: AlertController,
-      private userSettings: UserSettings) {
-        this.team = this.navParams.data;
-        this.tourneyData = this.eliteApi.getCurrentTourney();
-        this.teamStanding = _.find(this.tourneyData.standings, { 'teamId': this.team.id });
-      }
+      private userSettings: UserSettings) 
+    {
+      this.team = this.navParams.data;
+      this.tourneyData = this.eliteApi.getCurrentTourney();
+      this.teamStanding = _.find(this.tourneyData.standings, { 'teamId': this.team.id });
+    }
       
   ionViewDidLoad() {    
     console.log("TeamDetailPage this.navParams.data:", this.team);

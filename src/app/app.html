@@ -1,4 +1,4 @@
-<ion-menu [content]="content">
+<ion-menu [content]="content" (ionOpen)="menuOpened()" (ionClose)="menuClosed()">
   <ion-header>
     <ion-toolbar color="primary">
       <ion-title>Elite Schedule</ion-title>
